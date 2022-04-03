@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
+using Serilog;
 using WebBrowserExtension.Utils;
 using SD = System.Drawing;
 
@@ -17,7 +17,9 @@ namespace WebBrowserExtension
     // * https://github.com/MicrosoftEdge/WebView2Samples/blob/master/SampleApps/WebView2WpfBrowser/README.md
     public partial class WebBrowserWindowControl : UserControl
     {
+        private readonly ILogger log = Log.Logger;
         private readonly List<CoreWebView2Frame> webViewFrames = new List<CoreWebView2Frame>();
+        private CoreWebView2Environment environment;
         private bool isNavigating = false;
 
         public WebBrowserWindowControl()
@@ -26,6 +28,13 @@ namespace WebBrowserExtension
             InitializeAddressBar();
             InitializeAsync();
             AttachControlEventHandlers(webView);
+
+            // Dirty Hack: this forces a Resize event on the webView. If we do not do that
+            // when the window is hidden then shown again, the web view is wrongly positioned:
+            // it seems it is drawn relatively to the screen and not its parent grid...
+            // By forcing a size change, the web view is correctly drawn relatively to its
+            // parent control.
+            Loaded += (s, e) => rightFiller.Width = rightFiller.Width == 1.0 ? 0.0 : 1.0;
         }
 
         public Action<string> SetTitleAction { get; set; }
@@ -50,9 +59,9 @@ namespace WebBrowserExtension
         {
             // See https://github.com/MicrosoftEdge/WebView2Feedback/issues/271
             var userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VS2022WebBrowserExtension");
-            var webView2Environment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
+            environment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
 
-            await webView.EnsureCoreWebView2Async(webView2Environment);
+            await webView.EnsureCoreWebView2Async(environment);
         }
 
         private void AttachControlEventHandlers(WebView2 control)
@@ -116,15 +125,8 @@ namespace WebBrowserExtension
 
         private static void RequeryCommands() => CommandManager.InvalidateRequerySuggested();
 
-        private static void HandleError(string message, Exception exception = null)
-        {
-            var fullMessage = message;
-            if (exception != null)
-                fullMessage += $"\r\n\r\n{exception}";
-
-            // TODO: logging
-            _ = MessageBox.Show(fullMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
+        private static void HandleError(string message, Exception exception = null) =>
+            Log.Error(exception, $"{nameof(WebBrowserWindowControl)} - {message}");
 
         private void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e) =>
             e.CanExecute = webView != null && !isNavigating;

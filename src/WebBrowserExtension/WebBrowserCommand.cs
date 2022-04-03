@@ -1,7 +1,9 @@
 ﻿using System;
 using System.ComponentModel.Design;
+using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
-using Task = System.Threading.Tasks.Task;
+using Serilog;
 
 namespace WebBrowserExtension
 {
@@ -10,22 +12,15 @@ namespace WebBrowserExtension
     /// </summary>
     internal sealed class WebBrowserCommand
     {
-        /// <summary>
-        /// Command ID.
-        /// </summary>
         public const int CommandId = 0x0100;
         public const int WebBrowserWindowNavigateId = 0x101;
         public const int WebBrowserWindowToolbarID = 0x1000;
 
-        /// <summary>
-        /// Command menu group (command set GUID).
-        /// </summary>
         public static readonly Guid CommandSet = new Guid("48c3fadd-683b-4577-8583-c9817b4e5a50");
 
-        /// <summary>
-        /// VS Package that provides this command, not null.
-        /// </summary>
+        private readonly ILogger log = Log.Logger;
         private readonly AsyncPackage package;
+        private readonly DTE dte;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WebBrowserCommand"/> class.
@@ -33,9 +28,10 @@ namespace WebBrowserExtension
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private WebBrowserCommand(AsyncPackage package, OleMenuCommandService commandService)
+        private WebBrowserCommand(AsyncPackage asyncPackage, DTE dteInstance, OleMenuCommandService commandService)
         {
-            this.package = package ?? throw new ArgumentNullException(nameof(package));
+            package = asyncPackage ?? throw new ArgumentNullException(nameof(asyncPackage));
+            dte = dteInstance ?? throw new ArgumentNullException(nameof(dteInstance));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
@@ -43,52 +39,24 @@ namespace WebBrowserExtension
             commandService.AddCommand(menuItem);
         }
 
-        /// <summary>
-        /// Gets the instance of the command.
-        /// </summary>
-        public static WebBrowserCommand Instance
-        {
-            get;
-            private set;
-        }
+        public static WebBrowserCommand Instance { get; private set; }
 
-        /// <summary>
-        /// Gets the service provider from the owner package.
-        /// </summary>
-        private Microsoft.VisualStudio.Shell.IAsyncServiceProvider ServiceProvider
-        {
-            get
-            {
-                return this.package;
-            }
-        }
-
-        /// <summary>
-        /// Initializes the singleton instance of the command.
-        /// </summary>
-        /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in WebBrowserWindowCommand's constructor requires
-            // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             var commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
-            Instance = new WebBrowserCommand(package, commandService);
+            var dte = (DTE)await package.GetServiceAsync(typeof(DTE));
+            Instance = new WebBrowserCommand(package, dte, commandService);
         }
 
-        /// <summary>
-        /// Shows the tool window when the menu item is clicked.
-        /// </summary>
-        /// <param name="sender">The event sender.</param>
-        /// <param name="e">The event args.</param>
         private void Execute(object sender, EventArgs e)
         {
             _ = package.JoinableTaskFactory.RunAsync(async delegate
             {
-                var window = await package.ShowToolWindowAsync(typeof(WebBrowserWindow), 0, true, package.DisposalToken);
-                if (null == window || null == window.Frame)
-                    throw new NotSupportedException("Cannot create tool window");
+                var window = await package.ShowToolWindowAsync(typeof(WebBrowserWindow), 0, true, package.DisposalToken) as WebBrowserWindow;
+                if (window?.Frame == null)
+                    log.Error($"{nameof(WebBrowserCommand)}: Cannot create tool window");
             });
         }
     }
