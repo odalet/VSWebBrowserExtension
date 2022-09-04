@@ -11,6 +11,8 @@ The underlying Web Browser control is [Microsoft Edge WebView2](https://docs.mic
 
 ## History
 
-[0.1.0](https://github.com/odalet/VSWebBrowserExtension/releases/tag/v0.1.0) - 2022/03/27
+* [0.2.0](https://github.com/odalet/VSWebBrowserExtension/releases/tag/v0.2.0) - 2022/09/04
+  * Added an Options page allowing to define the default Home Page and the logging level
 
-Initial version
+* [0.1.0](https://github.com/odalet/VSWebBrowserExtension/releases/tag/v0.1.0) - 2022/03/27
+  * Initial version
