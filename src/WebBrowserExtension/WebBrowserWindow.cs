@@ -6,11 +6,13 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Web.WebView2.Wpf;
 using Serilog;
+using WebBrowserExtension.Settings;
+using WebBrowserExtension.Utils;
 
 namespace WebBrowserExtension
 {
     [Guid("8ab2cef3-7c52-4e4a-8d07-1dd7f9f90a1c")]
-    public class WebBrowserWindow : ToolWindowPane, IVsWindowFrameNotify2
+    public sealed class WebBrowserWindow : ToolWindowPane, IVsWindowFrameNotify2
     {
         private readonly ILogger log = Log.Logger;
         private readonly WebBrowserWindowControl control;
@@ -19,7 +21,7 @@ namespace WebBrowserExtension
 
         public WebBrowserWindow() : base(null)
         {
-            Caption = "Web Browser";
+            Caption = Constants.ExtensionName;
             control = new WebBrowserWindowControl { SetTitleAction = x => Caption = x };
             Content = control;
             webView = control.webView;
@@ -34,6 +36,24 @@ namespace WebBrowserExtension
         {
             log.Debug($"{nameof(WebBrowserWindow)}: OnClose({pgrfSaveOptions})");
             return VSConstants.S_OK;
+        }
+
+        protected override void Initialize()
+        {
+            log.Verbose($"Initializing {nameof(WebBrowserWindow)}");
+            base.Initialize();
+
+            try
+            {
+                var settings = this.GetService<IWebBrowserSettings>();
+                webView.Source = new Uri(settings.HomePage);
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex, $"{nameof(WebBrowserWindow)}.{nameof(Initialize)}(): Could not set Home Page");
+            }
+
+            log.Verbose($"Initialized {nameof(WebBrowserWindow)}");
         }
 
         private void OnVisualStudioShutDown()

@@ -7,9 +7,6 @@ using Serilog;
 
 namespace WebBrowserExtension
 {
-    /// <summary>
-    /// Command handler
-    /// </summary>
     internal sealed class WebBrowserCommand
     {
         public const int CommandId = 0x0100;

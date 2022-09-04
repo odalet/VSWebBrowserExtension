@@ -24,17 +24,24 @@ namespace WebBrowserExtension
 
         public WebBrowserWindowControl()
         {
-            InitializeComponent();
-            InitializeAddressBar();
-            InitializeAsync();
-            AttachControlEventHandlers(webView);
+            try
+            {
+                InitializeComponent();
+                InitializeAddressBar();
+                InitializeAsync();
+                AttachControlEventHandlers(webView);
 
-            // Dirty Hack: this forces a Resize event on the webView. If we do not do that
-            // when the window is hidden then shown again, the web view is wrongly positioned:
-            // it seems it is drawn relatively to the screen and not its parent grid...
-            // By forcing a size change, the web view is correctly drawn relatively to its
-            // parent control.
-            Loaded += (s, e) => rightFiller.Width = rightFiller.Width == 1.0 ? 0.0 : 1.0;
+                // Dirty Hack: this forces a Resize event on the webView. If we do not do that
+                // when the window is hidden then shown again, the web view is wrongly positioned:
+                // it seems it is drawn relatively to the screen and not its parent grid...
+                // By forcing a size change, the web view is correctly drawn relatively to its
+                // parent control.
+                Loaded += (s, e) => rightFiller.Width = rightFiller.Width == 1.0 ? 0.0 : 1.0;
+            }
+            catch (Exception ex)
+            {
+                HandleError("Constructor", ex);
+            }
         }
 
         public Action<string> SetTitleAction { get; set; }

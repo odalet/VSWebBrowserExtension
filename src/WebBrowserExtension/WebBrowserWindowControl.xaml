@@ -24,25 +24,6 @@
     <UserControl.CommandBindings>
         <CommandBinding Command="NavigationCommands.GoToPage" Executed="GoToPageCmdExecuted" CanExecute="GoToPageCmdCanExecute" />
     </UserControl.CommandBindings>
-    <!--<Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <DockPanel Grid.Row="0" Margin="2">
-            <Label Content="URL" VerticalAlignment="Center" />
-            <Button x:Name="goButton" DockPanel.Dock="Right" Content="Go" VerticalAlignment="Center"
-                    Command="NavigationCommands.GoToPage" CommandParameter="{Binding Text, ElementName=addressBar}" />
-            <TextBox x:Name="addressBar" VerticalAlignment="Center" Text="{Binding Source, ElementName=webView, Mode=OneWay}" Margin="2">
-                <TextBox.InputBindings>
-                    <KeyBinding Key="Return" Command="NavigationCommands.GoToPage" CommandParameter="{Binding Text, ElementName=addressBar}" />
-                </TextBox.InputBindings>
-            </TextBox>
-        </DockPanel>
-        <Grid x:Name="webViewParent" Grid.Row="1">
-            <wv2:WebView2 Name="webView" Source="https://www.microsoft.com" />
-        </Grid>
-    </Grid>-->
     <DockPanel Margin="2">
         <DockPanel DockPanel.Dock="Top" Margin="2">
             <Label Content="URL" VerticalAlignment="Center" />
