@@ -40,6 +40,7 @@ namespace MiniBrowser
 
                     // Only now can we navigate to the home page
                     // We should not use the Source property on the Xaml side (see https://github.com/MicrosoftEdge/WebView2Feedback/issues/1778#issuecomment-934072596)
+                    log.Debug($"Navigating to default Home Page: {Constants.HomePage}");
                     await NavigateTo(Constants.HomePage);
                 };
             }
@@ -118,6 +119,9 @@ namespace MiniBrowser
                 HandleError($"WebView2 creation failed: {e.InitializationException.Message}", e.InitializationException);
                 return;
             }
+
+            log.Debug($"WebView2 Runtime Version : {webView.CoreWebView2.Environment.BrowserVersionString}");
+            log.Debug($"WebView2 User Data Folder: {webView.CoreWebView2.Environment.UserDataFolder}");
 
             webView.CoreWebView2.DocumentTitleChanged += OnWebViewDocumentTitleChanged;
             webView.CoreWebView2.FrameCreated += OnWebViewHandleIFrames;
