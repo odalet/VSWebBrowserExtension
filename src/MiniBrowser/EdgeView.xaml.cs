@@ -6,23 +6,20 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
-using Serilog;
-using WebBrowserExtension.Utils;
+using MiniBrowser.Utils;
+using NLog;
 using SD = System.Drawing;
 
-namespace WebBrowserExtension
+namespace MiniBrowser
 {
-    // Inspiration:
-    // * https://github.com/MicrosoftEdge/WebView2Samples/blob/master/GettingStartedGuides/WPF_GettingStarted/MainWindow.xaml.cs
-    // * https://github.com/MicrosoftEdge/WebView2Samples/blob/master/SampleApps/WebView2WpfBrowser/README.md
-    public partial class WebBrowserWindowControl : UserControl
+    public partial class EdgeView : UserControl
     {
-        private readonly ILogger log = Log.Logger;
+        private static readonly ILogger log = LogManager.GetCurrentClassLogger();
         private readonly List<CoreWebView2Frame> webViewFrames = new List<CoreWebView2Frame>();
         private CoreWebView2Environment environment;
         private bool isNavigating = false;
 
-        public WebBrowserWindowControl()
+        public EdgeView()
         {
             try
             {
@@ -74,7 +71,7 @@ namespace WebBrowserExtension
             try
             {
                 // See https://github.com/MicrosoftEdge/WebView2Feedback/issues/271
-                var userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VS2022WebBrowserExtension");
+                var userDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MiniBrowser");
                 environment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
 
                 await webView.EnsureCoreWebView2Async(environment);
@@ -94,14 +91,14 @@ namespace WebBrowserExtension
 
         private void OnNavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
         {
-            Log.Verbose($"{e.NavigationId} - Navigation Started. Uri: {e.Uri}, User Initiated: {e.IsUserInitiated}, Redirected: {e.IsRedirected}");
+            log.Trace($"{e.NavigationId} - Navigation Started. Uri: {e.Uri}, User Initiated: {e.IsUserInitiated}, Redirected: {e.IsRedirected}");
             isNavigating = true;
             RequeryCommands();
         }
 
         private void OnNavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
-            Log.Verbose($"{e.NavigationId} - Navigation Completed. Status: {e.HttpStatusCode}");
+            log.Trace($"{e.NavigationId} - Navigation Completed. Status: {e.HttpStatusCode}");
             isNavigating = false;
             RequeryCommands();
         }
@@ -149,14 +146,14 @@ namespace WebBrowserExtension
         private static void RequeryCommands() => CommandManager.InvalidateRequerySuggested();
 
         private static void HandleError(string message, Exception exception = null) =>
-            Log.Error(exception, $"{nameof(WebBrowserWindowControl)} - {message}");
+            log.Error(exception, $"{nameof(EdgeView)} - {message}");
 
         private void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e) =>
             e.CanExecute = webView != null && !isNavigating;
 
         private async void GoToPageCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-            Log.Verbose($"Navigating to '{e.Parameter ?? "<null>"}'");
+            log.Trace($"Go to '{e.Parameter ?? "<null>"}'");
             try
             {
                 await webView.EnsureCoreWebView2Async();
@@ -168,7 +165,7 @@ namespace WebBrowserExtension
                 // as the previous Source. CoreWebView.Navigate() will always trigger a navigation.
                 webView.CoreWebView2.Navigate(uri.ToString());
 
-                Log.Verbose($"Initiated Navigation to '{uri}'");
+                log.Trace($"Initiated Navigation to '{uri}'");
             }
             catch (Exception ex)
             {

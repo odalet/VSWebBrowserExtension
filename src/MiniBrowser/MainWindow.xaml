@@ -1,0 +1,19 @@
+﻿<Window x:Class="MiniBrowser.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MiniBrowser"
+        xmlns:logging="clr-namespace:MiniBrowser.Logging"
+        mc:Ignorable="d" Title="MiniBrowser" Width="1024" Height="600" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <local:EdgeView Grid.Row="0" />
+        <GridSplitter Grid.Row="1" Background="LightGray" HorizontalAlignment="Stretch" />
+        <logging:WpfLogViewer Grid.Row="2" />
+    </Grid>
+</Window>
