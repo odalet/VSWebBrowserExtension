@@ -24,7 +24,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
-            <wv2:WebView2 Name="webView" Grid.Column="0" Source="https://www.microsoft.com" Visibility="Visible" />
+            <wv2:WebView2 Name="webView" Grid.Column="0" Visibility="Visible" />
             <Rectangle x:Name="rightFiller"  Grid.Column="1" Width="0" />
         </Grid>
     </DockPanel>

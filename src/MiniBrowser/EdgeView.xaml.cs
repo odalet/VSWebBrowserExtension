@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Web.WebView2.Core;
@@ -28,12 +29,19 @@ namespace MiniBrowser
                 InitializeAsync();
                 AttachControlEventHandlers(webView);
 
-                // Dirty Hack: this forces a Resize event on the webView. If we do not do that
-                // when the window is hidden then shown again, the web view is wrongly positioned:
-                // it seems it is drawn relatively to the screen and not its parent grid...
-                // By forcing a size change, the web view is correctly drawn relatively to its
-                // parent control.
-                Loaded += (s, e) => rightFiller.Width = rightFiller.Width == 1.0 ? 0.0 : 1.0;
+                Loaded += async (s, e) =>
+                {
+                    // Dirty Hack: this forces a Resize event on the webView. If we do not do that
+                    // when the window is hidden then shown again, the web view is wrongly positioned:
+                    // it seems it is drawn relatively to the screen and not its parent grid...
+                    // By forcing a size change, the web view is correctly drawn relatively to its
+                    // parent control.
+                    rightFiller.Width = rightFiller.Width == 1.0 ? 0.0 : 1.0;
+
+                    // Only now can we navigate to the home page
+                    // We should not use the Source property on the Xaml side (see https://github.com/MicrosoftEdge/WebView2Feedback/issues/1778#issuecomment-934072596)
+                    await NavigateTo(Constants.HomePage);
+                };
             }
             catch (Exception ex)
             {
@@ -156,21 +164,23 @@ namespace MiniBrowser
             log.Trace($"Go to '{e.Parameter ?? "<null>"}'");
             try
             {
-                await webView.EnsureCoreWebView2Async();
-
-                var rawUrl = (string)e.Parameter;
-                var uri = UriHelper.MakeUri(rawUrl);
-
-                // Setting webView.Source will not trigger a navigation if the Source is the same
-                // as the previous Source. CoreWebView.Navigate() will always trigger a navigation.
-                webView.CoreWebView2.Navigate(uri.ToString());
-
-                log.Trace($"Initiated Navigation to '{uri}'");
+                await NavigateTo((string)e.Parameter);
             }
             catch (Exception ex)
             {
                 HandleError($"{nameof(GoToPageCmdExecuted)}:", ex);
             }
+        }
+
+        private async Task NavigateTo(string url)
+        {
+            await webView.EnsureCoreWebView2Async();
+
+            var uri = UriHelper.MakeUri(url);
+
+            // Setting webView.Source will not trigger a navigation if the Source is the same
+            // as the previous Source. CoreWebView.Navigate() will always trigger a navigation.
+            webView.CoreWebView2.Navigate(uri.ToString());
         }
     }
 }
