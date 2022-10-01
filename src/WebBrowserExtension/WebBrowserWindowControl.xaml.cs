@@ -101,7 +101,7 @@ namespace WebBrowserExtension
 
         private void OnNavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
-            Log.Verbose($"{e.NavigationId} - Navigation Completed. Status: {e.HttpStatusCode}");
+            Log.Verbose($"{e.NavigationId} - Navigation Completed. Status: {e.WebErrorStatus}");
             isNavigating = false;
             RequeryCommands();
         }

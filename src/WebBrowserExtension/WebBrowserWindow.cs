@@ -47,7 +47,7 @@ namespace WebBrowserExtension
             {
                 // TODO: Use navigate (see MiniBrowser)!
                 var settings = this.GetService<IWebBrowserSettings>();
-                webView.Source = new Uri(settings.HomePage);
+                webView.Source = settings.GetHomePageUri();
             }
             catch (Exception ex)
             {

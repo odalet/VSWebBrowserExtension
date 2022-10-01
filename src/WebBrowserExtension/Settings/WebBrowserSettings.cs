@@ -62,9 +62,8 @@ namespace WebBrowserExtension.Settings
         {
             try
             {
-                var url = settingsStore.GetString(settingsKey, nameof(HomePage), defaultHomePage);
-                HomePage = string.IsNullOrEmpty(url) ? defaultHomePage : url;
-
+                // NB: the stored url can be intentionally empty, meaning the user wished to open the browser with a blank page
+                HomePage = settingsStore.GetString(settingsKey, nameof(HomePage), defaultHomePage) ?? "";
                 MinimumLogLevel = (LogEventLevel)settingsStore.GetInt32(settingsKey, nameof(MinimumLogLevel), (int)LogEventLevel.Information);
             }
             catch (Exception ex)

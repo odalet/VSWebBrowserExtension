@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using Serilog.Events;
 
 namespace WebBrowserExtension.Settings
@@ -9,5 +10,11 @@ namespace WebBrowserExtension.Settings
         LogEventLevel MinimumLogLevel { get; set; }
         void Save();
         void Load();
+    }
+
+    internal static class WebBrowserSettingsExtensions
+    {
+        public static Uri GetHomePageUri(this IWebBrowserSettings settings) =>
+            new Uri(string.IsNullOrEmpty(settings.HomePage) ? "about:blank" : settings.HomePage);
     }
 }
