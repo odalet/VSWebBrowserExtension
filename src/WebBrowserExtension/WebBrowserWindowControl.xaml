@@ -19,17 +19,67 @@
         <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static shell:VsResourceKeys.TextBoxStyleKey}}">
             <Setter Property="Padding" Value="2 3" />
         </Style>
-        <Style TargetType="Button" BasedOn="{StaticResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}" />
+        <Style TargetType="Button" BasedOn="{StaticResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+        </Style>
+        <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Static shell:VsResourceKeys.ButtonStyleKey}}">
+            <Setter Property="MinWidth" Value="23" />
+            <Setter Property="MinHeight" Value="23" />
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="{x:Null}" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="{x:Null}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
     <UserControl.CommandBindings>
+        <CommandBinding Command="NavigationCommands.BrowseBack" Executed="BrowseBackCmdExecuted" CanExecute="BrowseBackCmdCanExecute" />
+        <CommandBinding Command="NavigationCommands.BrowseForward" Executed="BrowseForwardCmdExecuted" CanExecute="BrowseForwardCmdCanExecute" />
+        <CommandBinding Command="NavigationCommands.Refresh" Executed="RefreshCmdExecuted" CanExecute="RefreshCmdCanExecute" />
+        <CommandBinding Command="NavigationCommands.BrowseHome" Executed="BrowseHomeCmdExecuted" CanExecute="BrowseHomeCmdCanExecute" />
         <CommandBinding Command="NavigationCommands.GoToPage" Executed="GoToPageCmdExecuted" CanExecute="GoToPageCmdCanExecute" />
     </UserControl.CommandBindings>
     <DockPanel Margin="2">
         <DockPanel DockPanel.Dock="Top" Margin="2">
-            <Label Content="URL" VerticalAlignment="Center" />
-            <Button x:Name="goButton" DockPanel.Dock="Right" Content="Go" VerticalAlignment="Center"
-                    Command="NavigationCommands.GoToPage" CommandParameter="{Binding Text, ElementName=addressBar}" />
-            <TextBox x:Name="addressBar" VerticalAlignment="Center" Text="{Binding Source, ElementName=webView, Mode=OneWay}" Margin="2">
+            <Button x:Name="backButton" DockPanel.Dock="Left" VerticalAlignment="Center" ToolTip="Go Back" Command="NavigationCommands.BrowseBack" 
+                    Style="{StaticResource IconButton}" Margin="2">
+                <Path Data="M25.320001,0L25.320001,32 0,16z" 
+                      Fill="{Binding Foreground, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}"
+                      Stretch="Uniform" Width="16" Height="16" RenderTransformOrigin="0.5,0.5" />
+            </Button>
+            <Button x:Name="forwardButton" DockPanel.Dock="Left" VerticalAlignment="Center" ToolTip="Go Forward" Command="NavigationCommands.BrowseForward"
+                    Style="{StaticResource IconButton}" Margin="2">
+                <Path Data="M0,0L25.194,16 0,32z"
+                      Fill="{Binding Foreground, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}"
+                      Stretch="Uniform" Width="16" Height="16" RenderTransformOrigin="0.5,0.5" />
+            </Button>
+            <Button x:Name="reloadButton" DockPanel.Dock="Left" VerticalAlignment="Center" ToolTip="Refresh" Command="NavigationCommands.Refresh"
+                    Style="{StaticResource IconButton}" Margin="2">
+                <Path Data="M23.31796,0L28.570003,13.172097 14.41392,12.338107 17.413936,8.1820688C13.447912,6.9120402 8.9538686,8.1760263 6.3478668,11.700102 3.0778596,16.120117 4.0088646,22.379139 8.430886,25.647169 12.857912,28.922218 19.112951,27.987213 22.384941,23.564144 23.592956,21.928146 24.220981,20.041168 24.314975,18.15114L24.314975,18.152117 28.701994,18.416157C28.557003,21.131144 27.650993,23.833189 25.914991,26.183184 21.198961,32.549259 12.188902,33.902237 5.8148739,29.186197 -0.55115808,24.4762 -1.8981809,15.462093 2.8088455,9.0920496 6.8638604,3.6159945 14.093911,1.8650044 20.090954,4.4720192z"
+                      Fill="{Binding Foreground, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}"
+                      Stretch="Uniform" Width="16" Height="16" RenderTransformOrigin="0.5,0.5" />
+            </Button>
+            <Button x:Name="homeButton" DockPanel.Dock="Left" VerticalAlignment="Center" ToolTip="Home" Command="NavigationCommands.BrowseHome"
+                    Style="{StaticResource IconButton}" Margin="2">
+                <Path Data="M16.017856,7.9149963L27.038898,17.733009 27.038898,30.457012C27.038898,30.958004 26.737896,31.258007 26.436891,31.358013 26.136896,31.559002 25.835892,31.559002 25.535887,31.559002L19.62487,31.559002C19.423866,31.559002 19.223869,31.459011 19.123869,31.358013 19.02387,31.258007 18.922865,31.05801 18.922865,30.857006L18.922865,24.746011 13.011848,24.746011 13.011848,30.857006C13.011848,31.05801 12.91185,31.258007 12.811843,31.358013 12.711844,31.459011 12.510847,31.559002 12.310841,31.559002L6.3998249,31.559002C6.0998209,31.559002 5.7988175,31.459011 5.4978211,31.358013 5.2978161,31.258007 4.9968203,30.958004 4.9968203,30.457012L4.9968203,17.833z M16.017856,0C16.518858,1.4456054E-07,17.019857,0.19999716,17.42086,0.50099231L31.346912,13.024007C32.147919,13.826009 32.247917,15.028005 31.446913,15.929998 30.644907,16.731008 29.342909,16.830999 28.540903,16.030004L16.017856,4.8089925 3.4948159,15.929998C3.0938135,16.330007 2.5928121,16.431005 2.0918112,16.431005 1.4908033,16.431005 0.989802,16.230001 0.58879947,15.729009 -0.21219814,15.028005 -0.21219814,13.726003 0.68879842,13.024007L14.614851,0.50099231C15.015853,0.19999716,15.516854,1.4456054E-07,16.017856,0z"
+                      Fill="{Binding Foreground, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}"
+                      Stretch="Uniform" Width="16" Height="16" RenderTransformOrigin="0.5,0.5" />
+            </Button>
+            <Button x:Name="goButton" DockPanel.Dock="Right" VerticalAlignment="Center" ToolTip="Go" 
+                    Command="NavigationCommands.GoToPage" CommandParameter="{Binding Text, ElementName=addressBar}"
+                    Style="{StaticResource IconButton}" Margin="2">
+                <Path Data="M19.0539,0.00039648728C19.246409,-0.0080116675,19.496624,0.11719825,19.804493,0.38684398L31.509489,9.8328359C32.228482,10.345836,32.125515,11.475842,31.406523,11.988844L20.112538,21.229819C19.085501,22.050803,18.469536,21.64083,18.469536,20.407857L18.469536,15.582841C18.469536,15.274796,17.751519,15.068803,17.545527,15.068803L0.091579532,15.068803C-0.11447453,14.966813,0.091579763,14.760818,0.091579532,14.452835L0.091579532,7.2658174C0.091579763,6.9578335,-0.11447453,6.7528164,0.19356929,6.7528164L17.648491,6.7528164C17.956536,6.7528164,18.572501,6.5468223,18.572501,6.2388389L18.572501,1.1058387C18.572501,0.39958525,18.733052,0.01441018,19.0539,0.00039648728z"
+                      Fill="{Binding Foreground, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}"
+                      Stretch="Uniform" Width="16" Height="16" RenderTransformOrigin="0.5,0.5" />
+            </Button>
+            <TextBox x:Name="addressBar" VerticalAlignment="Stretch" Text="{Binding Source, ElementName=webView, Mode=OneWay}" Margin="2">
                 <TextBox.InputBindings>
                     <KeyBinding Key="Return" Command="NavigationCommands.GoToPage" CommandParameter="{Binding Text, ElementName=addressBar}" />
                 </TextBox.InputBindings>
@@ -40,7 +90,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
-            <wv2:WebView2 Name="webView" Grid.Column="0" Source="https://www.microsoft.com" Visibility="Visible" />
+            <wv2:WebView2 Name="webView" Grid.Column="0" Visibility="Visible" />
             <Rectangle x:Name="rightFiller"  Grid.Column="1" Width="0" />
         </Grid>
     </DockPanel>

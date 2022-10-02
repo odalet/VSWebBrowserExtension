@@ -6,6 +6,9 @@ namespace WebBrowserExtension.Utils
     {
         public static Uri MakeUri(string rawUrl)
         {
+            if (string.IsNullOrEmpty(rawUrl))
+                return new Uri("about:blank");
+
             if (Uri.IsWellFormedUriString(rawUrl, UriKind.Absolute))
                 return new Uri(rawUrl);
 

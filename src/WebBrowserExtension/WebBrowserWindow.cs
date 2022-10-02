@@ -31,29 +31,24 @@ namespace WebBrowserExtension
             dte = (DTE)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(DTE));
             dte.Events.DTEEvents.OnBeginShutdown += OnVisualStudioShutDown;
         }
-        
+
         public int OnClose(ref uint pgrfSaveOptions)
         {
             log.Debug($"{nameof(WebBrowserWindow)}: OnClose({pgrfSaveOptions})");
             return VSConstants.S_OK;
         }
 
+        public override void OnToolWindowCreated()
+        {
+            base.OnToolWindowCreated();
+            log.Debug($"{nameof(WebBrowserWindow)}: OnToolWindowCreated()");
+        }
+
         protected override void Initialize()
         {
             log.Verbose($"Initializing {nameof(WebBrowserWindow)}");
             base.Initialize();
-
-            try
-            {
-                // TODO: Use navigate (see MiniBrowser)!
-                var settings = this.GetService<IWebBrowserSettings>();
-                webView.Source = settings.GetHomePageUri();
-            }
-            catch (Exception ex)
-            {
-                log.Error(ex, $"{nameof(WebBrowserWindow)}.{nameof(Initialize)}(): Could not set Home Page");
-            }
-
+            control.Services = this;
             log.Verbose($"Initialized {nameof(WebBrowserWindow)}");
         }
 

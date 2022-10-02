@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using Serilog;
+using WebBrowserExtension.Settings;
 using WebBrowserExtension.Utils;
 using SD = System.Drawing;
 
@@ -21,6 +24,7 @@ namespace WebBrowserExtension
         private readonly List<CoreWebView2Frame> webViewFrames = new List<CoreWebView2Frame>();
         private CoreWebView2Environment environment;
         private bool isNavigating = false;
+        private bool isFirstTimeLoad = true;
 
         public WebBrowserWindowControl()
         {
@@ -31,12 +35,8 @@ namespace WebBrowserExtension
                 InitializeAsync();
                 AttachControlEventHandlers(webView);
 
-                // Dirty Hack: this forces a Resize event on the webView. If we do not do that
-                // when the window is hidden then shown again, the web view is wrongly positioned:
-                // it seems it is drawn relatively to the screen and not its parent grid...
-                // By forcing a size change, the web view is correctly drawn relatively to its
-                // parent control.
-                Loaded += (s, e) => rightFiller.Width = rightFiller.Width == 1.0 ? 0.0 : 1.0;
+                Loaded += WebBrowserWindowControl_Loaded;
+                Unloaded += WebBrowserWindowControl_Unloaded;
             }
             catch (Exception ex)
             {
@@ -44,6 +44,8 @@ namespace WebBrowserExtension
             }
         }
 
+        ////public Uri HomePageUri { get; set; }
+        public IServiceProvider Services { get; set; }
         public Action<string> SetTitleAction { get; set; }
 
         private void InitializeAddressBar()
@@ -101,7 +103,11 @@ namespace WebBrowserExtension
 
         private void OnNavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
-            Log.Verbose($"{e.NavigationId} - Navigation Completed. Status: {e.WebErrorStatus}");
+            var status = e.HttpStatusCode.ToString();
+            if (e.WebErrorStatus != CoreWebView2WebErrorStatus.Unknown)
+                status += $" ({e.WebErrorStatus})";
+
+            Log.Verbose($"{e.NavigationId} - Navigation Completed. Status: {status}");
             isNavigating = false;
             RequeryCommands();
         }
@@ -119,7 +125,7 @@ namespace WebBrowserExtension
             SetDefaultDownloadDialogPosition();
         }
 
-        void OnWebViewDocumentTitleChanged(object sender, object e) =>
+        private void OnWebViewDocumentTitleChanged(object sender, object e) =>
             SetTitleAction?.Invoke(webView.CoreWebView2.DocumentTitle);
 
         private void OnWebViewHandleIFrames(object sender, CoreWebView2FrameCreatedEventArgs args)
@@ -143,7 +149,10 @@ namespace WebBrowserExtension
                 webView.CoreWebView2.DefaultDownloadDialogCornerAlignment = cornerAlignment;
                 webView.CoreWebView2.DefaultDownloadDialogMargin = margin;
             }
-            catch (NotImplementedException) { }
+            catch (NotImplementedException ex)
+            {
+                Log.Verbose(ex, $"In {nameof(SetDefaultDownloadDialogPosition)}, encountered {nameof(NotImplementedException)}: {ex.Message}");
+            }
         }
 
         private static void RequeryCommands() => CommandManager.InvalidateRequerySuggested();
@@ -151,29 +160,60 @@ namespace WebBrowserExtension
         private static void HandleError(string message, Exception exception = null) =>
             Log.Error(exception, $"{nameof(WebBrowserWindowControl)} - {message}");
 
-        private void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e) =>
-            e.CanExecute = webView != null && !isNavigating;
+        private void WebBrowserWindowControl_Unloaded(object sender, RoutedEventArgs e) =>
+            Log.Verbose("Unloaded Event Handler");
 
-        private async void GoToPageCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        private async void WebBrowserWindowControl_Loaded(object sender, RoutedEventArgs e)
         {
-            Log.Verbose($"Navigating to '{e.Parameter ?? "<null>"}'");
+            Log.Verbose("Loaded Event Handler");
             try
             {
-                await webView.EnsureCoreWebView2Async();
+                // Dirty Hack: this forces a Resize event on the webView. If we do not do that
+                // when the window is hidden then shown again, the web view is wrongly positioned:
+                // it seems it is drawn relatively to the screen and not its parent grid...
+                // By forcing a size change, the web view is correctly drawn relatively to its
+                // parent control.
+                rightFiller.Width = rightFiller.Width == 1.0 ? 0.0 : 1.0;
 
-                var rawUrl = (string)e.Parameter;
-                var uri = UriHelper.MakeUri(rawUrl);
-
-                // Setting webView.Source will not trigger a navigation if the Source is the same
-                // as the previous Source. CoreWebView.Navigate() will always trigger a navigation.
-                webView.CoreWebView2.Navigate(uri.ToString());
-
-                Log.Verbose($"Initiated Navigation to '{uri}'");
+                if (isFirstTimeLoad)
+                {
+                    Log.Verbose($"First time Load: navigate to Home Page");
+                    isFirstTimeLoad = false;
+                    await NavigateToHomeAsync();
+                }
             }
             catch (Exception ex)
             {
-                HandleError($"{nameof(GoToPageCmdExecuted)}:", ex);
+                HandleError("Inside Loaded", ex);
             }
         }
+
+        private async Task NavigateToAsync(Uri uri)
+        {
+            await webView.EnsureCoreWebView2Async();
+
+            // Setting webView.Source will not trigger a navigation if the Source is the same
+            // as the previous Source. CoreWebView.Navigate() will always trigger a navigation.
+            webView.CoreWebView2.Navigate(uri.ToString());
+
+            Log.Verbose($"Initiated Navigation to '{uri}'");
+        }
+
+        private async Task NavigateToHomeAsync()
+        {
+            try
+            {
+                var settings = GetService<IWebBrowserSettings>();
+                var homepage = settings.GetHomePageUri();
+                Log.Verbose($"Home Page Uri is '{homepage}'");
+                await NavigateToAsync(homepage);
+            }
+            catch (Exception ex)
+            {
+                HandleError("Failed to navigate to Home Uri", ex);
+            }
+        }
+
+        private T GetService<T>() where T : class => Services.GetService<T>();
     }
 }

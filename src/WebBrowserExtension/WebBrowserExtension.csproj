@@ -36,6 +36,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DeployExtension>True</DeployExtension>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -47,7 +48,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
-    <Compile Include="Converters\EnumToIntConverter.cs" />
+    <Compile Include="Converters\GetEnumValuesConverter.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\IWebBrowserSettings.cs" />
@@ -64,6 +65,7 @@
     </Compile>
     <Compile Include="WebBrowserWindow.cs" />
     <Compile Include="WebBrowserCommand.cs" />
+    <Compile Include="WebBrowserWindowControl.commands.cs" />
     <Compile Include="WebBrowserWindowControl.xaml.cs">
       <DependentUpon>WebBrowserWindowControl.xaml</DependentUpon>
     </Compile>
@@ -89,19 +91,19 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="GitVersion.MsBuild">
-      <Version>5.9.0</Version>
+      <Version>5.10.3</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.32112.339" ExcludeAssets="runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.2.2141">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.3.2094">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Web.WebView2">
-      <Version>1.0.1150.38</Version>
+      <Version>1.0.1343.22</Version>
     </PackageReference>
     <PackageReference Include="Serilog.Sinks.Trace">
       <Version>3.0.0</Version>

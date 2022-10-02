@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using Serilog.Events;
+using WebBrowserExtension.Utils;
 
 namespace WebBrowserExtension.Settings
 {
@@ -14,7 +15,6 @@ namespace WebBrowserExtension.Settings
 
     internal static class WebBrowserSettingsExtensions
     {
-        public static Uri GetHomePageUri(this IWebBrowserSettings settings) =>
-            new Uri(string.IsNullOrEmpty(settings.HomePage) ? "about:blank" : settings.HomePage);
+        public static Uri GetHomePageUri(this IWebBrowserSettings settings) => UriHelper.MakeUri(settings.HomePage);
     }
 }
